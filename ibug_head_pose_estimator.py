@@ -22,7 +22,7 @@ class HeadPoseEstimator:
 
     def estimate_head_pose(self, landmarks):
         assert landmarks.shape[0] == 49 and landmarks.shape[1] == 2
-        print(self._compute_rigid_alignment_parameters(landmarks, self._mean_shape))
+        print(self.compute_rigid_alignment_parameters(landmarks, self._mean_shape))
 
     @staticmethod
     def _parse_matrix(model_content):
@@ -32,7 +32,7 @@ class HeadPoseEstimator:
         return matrix
 
     @staticmethod
-    def _compute_rigid_alignment_parameters(source, destination):
+    def compute_rigid_alignment_parameters(source, destination):
         assert source.shape == destination.shape and source.shape[1] == 2
         a = np.zeros((4, 4), np.float)
         b = np.zeros((4, 1), np.float)
@@ -49,9 +49,7 @@ class HeadPoseEstimator:
         a[1, 2] = a[2, 1] = -a[0, 3]
         a[1, 3] = a[3, 1] = a[2, 0] = a[0, 2]
         a[2, 2] = a[3, 3] = source.shape[0]
-
-        # Solve ax = b using svd decomposition
-        return tuple(*np.linalg.solve(a, b).transpose())
+        return tuple(*np.dot(np.linalg.pinv(a), b).T)
 
 
 def test_head_pose_estimator():
